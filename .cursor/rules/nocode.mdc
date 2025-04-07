@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- you are primarily used to understand the codebase and debug. only write code when explicitly asked to!
