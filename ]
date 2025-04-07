@@ -1,0 +1,133 @@
+
+'use client'
+
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { format } from 'date-fns'
+import { z } from 'zod'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverTrigger } from '@radix-ui/react-popover';
+import { cn } from '@/lib/utils';
+import { CalendarIcon } from 'lucide-react'
+import { PopoverContent } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DialogHeader } from '../ui/dialog'
+import { useVenueStore } from '@/stores/useVenuestore'
+
+
+const formSchema = z.object({
+    eventName: z.string(),
+    eventDate: z.date(),
+    eventTime: z.string().time(),
+    venue: z.string()
+});
+export default function() {
+    const {selectedVenue, setSelectedVenue} = useVenueStore();
+
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            eventName: "",
+            venue: selectedVenue?.id
+
+        },
+    })
+
+    function onSubmit(values: z.infer<typeof formSchema>) {
+        console.log(values);
+    }
+
+    return (
+
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+            <Dialog>
+                <DialogTrigger>click</DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className='text-center'>create new event</DialogTitle>
+                        <DialogDescription>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className='flex flex-col justify-center items-center w-full h-full'>
+                        <Form {...form}>
+                            <div>
+                                <FormField
+                                    control={form.control}
+                                    name="eventName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Event Name</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Event name" {...field} />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField 
+                                    control={form.control}
+                                    name="venue"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Venue</FormLabel>
+                                            <FormControl>
+                                                <Input type="text" {...field} disabled/>
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <FormField
+                                control={form.control}
+                                name="eventDate"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col">
+                                        <FormLabel>Event date</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-[240px] pl-3 text-left font-normal",
+                                                            !field.value && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        {field.value ? (
+                                                            format(field.value, "PPP")
+                                                        ) : (
+                                                            <span>Pick a date</span>
+                                                        )}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={field.onChange}
+                                                    disabled={(date) =>
+                                                        date > new Date() || date < new Date("1900-01-01")
+                                                    }
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <Button type='submit'>Save event</Button>
+                        </Form>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </form>
+
+    )
+}

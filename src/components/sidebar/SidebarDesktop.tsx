@@ -45,7 +45,9 @@ export default function({ venues }: { venues: Venue[] }) {
                                                     value={venue.id.toString()}
                                                     onSelect={(currentValue) => {
                                                         const selected = venues.find(v => v.id.toString() === currentValue)
-                                                        if (selected) setSelectedVenue(selected)
+                                                        if (selected) {
+                                                            setSelectedVenue(selected)
+                                                        };
                                                     }}
                                                 >
                                                     {venue.name}
@@ -71,7 +73,7 @@ export default function({ venues }: { venues: Venue[] }) {
                     <SidebarGroupContent>
                         <SidebarMenu>
                             <SidebarMenuItem>
-                                <SidebarMenuButton onClick={() => router.push("/admin/desktop/all-events")}>
+                                <SidebarMenuButton onClick={() => router.push("/admin/desktop/events")}>
                                     All Events
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
