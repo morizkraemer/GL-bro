@@ -43,6 +43,7 @@ model GuestList {
     event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
     guests      Guest[]
     maxCapacity Int?
+    closed     Boolean     @default(false)
     createdAt   DateTime    @default(now())
     updatedAt   DateTime    @updatedAt
 
