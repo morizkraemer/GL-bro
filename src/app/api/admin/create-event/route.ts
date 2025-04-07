@@ -10,7 +10,13 @@ export async function POST(request: Request) {
         data: {
             name: title,
             venueId,
-            eventDate: new Date(date)
+            eventDate: new Date(date),
+            guestLists: {
+                create: {
+                    name: "Default Guest List",
+                    maxCapacity: 100
+                }
+            }
         }
     });
 
