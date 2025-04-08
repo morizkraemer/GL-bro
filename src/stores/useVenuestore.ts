@@ -1,6 +1,6 @@
+import { Venue } from '@/types/event-types';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { Venue } from '@prisma/client';
 
 type VenueStore = {
     selectedVenue: Venue | null

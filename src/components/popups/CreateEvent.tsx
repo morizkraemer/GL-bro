@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { z } from 'zod'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, Plus } from 'lucide-react'
 
 import {
     Form,
@@ -31,39 +31,56 @@ import {
 } from '@/components/ui/dialog'
 import { useVenueStore } from '@/stores/useVenuestore'
 import TimePicker from '../utils/TimePicker'
+import { EventFormValues, eventSchema } from '@/form-schemas/event-forms'
+import { useSession } from 'next-auth/react'
 import { createEvent } from '@/actions/event-actions'
 
 // Form schema with proper validation
-const formSchema = z.object({
-    eventName: z.string().min(1, { message: "Event name is required" }),
-    eventDateTime: z.date({ required_error: "Event date and time are required" }),
-    venue: z.number(),
-})
-
-export type FormValues = z.infer<typeof formSchema>
 
 export default function CreateEventForm() {
     const { selectedVenue } = useVenueStore()
     const [open, setOpen] = useState(false)
+    const {data:session, status} = useSession();
 
-    const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<EventFormValues>({
+        resolver: zodResolver(eventSchema),
         defaultValues: {
             eventName: '',
             eventDateTime: undefined,
-            venue: undefined,
+            venueId: undefined,
+            guestLists: [
+                {
+                    name: "Default Guest List",
+                    maxCapacity: 0
+                }
+            ]
         },
     })
 
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: "guestLists",
+    })
+
+    const handleRemove = (index: number) => {
+        const currentValues = form.getValues()
+        remove(index)
+        form.reset({
+            ...currentValues,
+            guestLists: currentValues.guestLists.filter((_, i) => i !== index)
+        })
+    }
+
     useEffect(() => {
         if (selectedVenue) {
-            form.setValue('venue', selectedVenue.id);
+            form.setValue('venueId', selectedVenue.id);
         }
     }, [selectedVenue, form]);
 
-    async function onSubmit(values: FormValues) {
+    async function onSubmit(values: EventFormValues) {
         try {
-            await createEvent(values);
+                // TODO need to add to user object in next auth
+                await createEvent(session!.user,values);
 
             setOpen(false)
 
@@ -115,7 +132,7 @@ export default function CreateEventForm() {
                             <div className="col-span-4">
                                 <FormField
                                     control={form.control}
-                                    name="venue"
+                                    name="venueId"
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Venue</FormLabel>
@@ -215,6 +232,87 @@ export default function CreateEventForm() {
                             </div>
                         </div>
 
+                        <div className="grid grid-cols-16 gap-4">
+                            <div className="col-span-16">
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-medium">Guest Lists</h3>
+                                    
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-12 gap-4 text-sm text-muted-foreground border-b pb-2">
+                                            <div className="col-span-6">Guest List Name</div>
+                                            <div className="col-span-4 text-right">Max Capacity</div>
+                                            <div className="col-span-2"></div>
+                                        </div>
+                                        
+                                        {fields.map((field, index) => (
+                                            <div key={field.id} className="grid grid-cols-12 gap-4 items-center p-3 border rounded-lg bg-secondary/20">
+                                                <div className="col-span-6">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`guestLists.${index}.name`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <Input 
+                                                                        placeholder="Guest List Name"
+                                                                        className="h-8"
+                                                                        {...field}
+                                                                    />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </div>
+                                                <div className="col-span-4 flex justify-end">
+                                                    <FormField
+                                                        control={form.control}
+                                                        name={`guestLists.${index}.maxCapacity`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <Input 
+                                                                        type="number" 
+                                                                        className='w-16 h-8' 
+                                                                        placeholder="0"
+                                                                        min="0"
+                                                                        {...field}
+                                                                        onChange={(e) => field.onChange(Number(e.target.value))}
+                                                                    />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </div>
+                                                <div className="col-span-2 flex justify-end">
+                                                    <Button 
+                                                        type="button"
+                                                        variant="ghost" 
+                                                        size="sm" 
+                                                        className="text-destructive hover:text-destructive/90"
+                                                        onClick={() => handleRemove(index)}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <Button 
+                                        type="button"
+                                        variant="outline" 
+                                        className="w-full border-border"
+                                        onClick={() => append({ name: '', maxCapacity: 0 })}
+                                    >
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Add Guest List
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="flex justify-center gap-2 mt-6">
                             <Button type="button" variant="outline" className="border-border" onClick={() => setOpen(false)}>
                                 Cancel
@@ -227,3 +325,4 @@ export default function CreateEventForm() {
         </Dialog>
     )
 }
+

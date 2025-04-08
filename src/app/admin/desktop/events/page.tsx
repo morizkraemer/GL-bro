@@ -13,31 +13,39 @@ import {
 import { Button } from "@/components/ui/button";
 import { Ellipsis, Eye } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { deleteEvent, getEvents } from "@/actions/event-actions";
+import { deleteEvent, getEvents, getEventsByVenueId } from "@/actions/event-actions";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type Event } from "@prisma/client";
 import Link from "next/link";
+import { useVenueStore } from "@/stores/useVenuestore";
+import { EventWithDetails } from "@/types/event-types";
 
 export default function AllEventsPage() {
-    const [events, setEvents] = useState<(Event & { venue: { name: string; id: number; capacity: number } })[]>([]);
+    const { selectedVenue } = useVenueStore();
+    const [events, setEvents] = useState<EventWithDetails[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshKey, setRefreshKey] = useState(0);
 
     useEffect(() => {
         async function fetchEvents() {
+            if (!selectedVenue) {
+                setEvents([]);
+                return;
+            }
+
             try {
                 setLoading(true);
-                const data = await getEvents();
+                const data = await getEventsByVenueId(selectedVenue.id);
                 setEvents(data);
             } catch (error) {
                 console.error("Error fetching events:", error);
+                setEvents([]);
             } finally {
                 setLoading(false);
             }
         }
-        
+
         fetchEvents();
-    }, [refreshKey]);
+    }, [refreshKey, selectedVenue?.id]);
 
     const handleDelete = async (id: number) => {
         try {
@@ -60,6 +68,7 @@ export default function AllEventsPage() {
                             <TableHead>Venue</TableHead>
                             <TableHead>Date</TableHead>
                             <TableHead>Created At</TableHead>
+                            <TableHead>Created By</TableHead>
                             <TableHead className="w-[80px]"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -89,6 +98,11 @@ export default function AllEventsPage() {
                                     <TableCell>{event.venue.name}</TableCell>
                                     <TableCell>{format(new Date(event.eventDate), 'PPP', { locale: de })}</TableCell>
                                     <TableCell>{format(new Date(event.createdAt), 'PPP', { locale: de })}</TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            {event.createdByUser.name}
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>

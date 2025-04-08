@@ -1,8 +1,10 @@
 'use server'
 
-import { FormValues } from "@/components/popups/CreateEvent";
+import { EventFormValues } from "@/form-schemas/event-forms";
 import { prisma } from "@/lib/prisma";
-
+import { updateEventGuestLists, createGuestLists } from "./guestlist-actions";
+import { revalidatePath } from "next/cache";
+import { Session } from "next-auth";
 
 export async function getEvents() {
     const events = await prisma.event.findMany({
@@ -13,6 +15,33 @@ export async function getEvents() {
             eventDate: 'desc',
         },
     });
+    return events;
+}
+
+export async function getEventsByVenueId(venueId: number) {
+    if (!venueId) {
+        throw new Error("Venue ID is required");
+    }
+
+        const events = await prisma.event.findMany({
+        where: {
+            venueId: venueId,
+        },
+        include: {
+            venue: true,
+            guestLists: {
+                include: {
+                    guests: true
+                }
+            },
+            createdByUser: true,
+        },
+    });
+
+    if (!events) {
+        throw new Error("Events not found");
+    }
+
     return events;
 }
 
@@ -29,8 +58,8 @@ export async function getEventById(id: number) {
             venue: true,
             guestLists: {
                 include: {
-                    guests: true,
-                },
+                    guests: true
+                }
             },
         },
     });
@@ -42,27 +71,72 @@ export async function getEventById(id: number) {
     return event;
 }
 
-export async function createEvent(formData: FormValues) {
-    const { eventName, eventDateTime, venue } = formData;
+export async function createEvent(user: Session["user"], formData: EventFormValues) {
+    const { eventName, eventDateTime, venueId: venue, guestLists } = formData;
     if (!eventName || !venue || !eventDateTime) {
         throw new Error("Missing required fields");
     }
 
+    // Create event first
     const event = await prisma.event.create({
         data: {
             name: eventName,
             venueId: venue,
             eventDate: new Date(eventDateTime),
-            guestLists: {
-                create: {
-                    name: "Default Guest List",
-                    maxCapacity: 100
-                }
-            }
+            createdByUserId: user.id,
+        },
+        include: {
+            venue: true,
+            guestLists: true,
         }
     });
 
+    // Then create guest lists
+    if (guestLists?.length) {
+        await createGuestLists(event.id, guestLists);
+    }
+
+    revalidatePath('/admin/desktop/events');
     return event;
+}
+
+export async function updateEvent(id: number, formData: EventFormValues) {
+    const { eventName, eventDateTime, venueId: venue, guestLists } = formData;
+    if (!eventName || !venue || !eventDateTime)
+{
+        throw new Error("Missing required fields");
+    }
+
+    try {
+        // Update event details
+        const event = await prisma.event.update({
+            where: {
+                id: id,
+            },
+            data: {
+                name: eventName,
+                venueId: venue,
+                eventDate: new Date(eventDateTime),
+            },
+            include: {
+                venue: true,
+                guestLists: true,
+            }
+        });
+
+        // Update guest lists separately
+        if (guestLists?.length) {
+            await updateEventGuestLists(id, guestLists);
+        }
+
+        revalidatePath(`/admin/desktop/events/${id}`);
+        revalidatePath('/admin/desktop/events');
+        
+        return event;
+    } catch (error) {
+        console.error('Error updating event:', error);
+        throw error;
+    }
 }
 
 export async function deleteEvent(id: number) {
@@ -76,5 +150,7 @@ export async function deleteEvent(id: number) {
         }
     });
 
+    revalidatePath('/admin/desktop/events');
     return event;
 }
+

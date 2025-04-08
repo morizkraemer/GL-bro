@@ -10,22 +10,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import React from 'react'
 
 type Props = {
     params: Promise<{
         eventId: string;
     }>
-}
-
-// GuestList interface for proper type checking
-interface GuestList {
-    id: number;
-    name: string;
-    guests: any[];
-    maxCapacity: number;
-    closed: boolean;
 }
 
 export default function EventDetailsPage({ params }: Props) {

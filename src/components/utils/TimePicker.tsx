@@ -9,9 +9,10 @@ import { cn } from "@/lib/utils";
 interface TimePickerDemoProps {
   date: Date | undefined;
   setDate: (date: Date | undefined) => void;
+  disabled?: boolean;
 }
  
-export default function({ date, setDate }: TimePickerDemoProps) {
+export default function({ date, setDate, disabled }: TimePickerDemoProps) {
   const minuteRef = React.useRef<HTMLInputElement>(null);
   const hourRef = React.useRef<HTMLInputElement>(null);
  
@@ -27,6 +28,7 @@ export default function({ date, setDate }: TimePickerDemoProps) {
             date={date}
             setDate={setDate}
             ref={hourRef}
+            disabled={disabled}
             onRightFocus={() => minuteRef.current?.focus()}
             className={cn("w-full bg-secondary/40 rounded-md h-10")}
           />
@@ -40,6 +42,7 @@ export default function({ date, setDate }: TimePickerDemoProps) {
             date={date}
             setDate={setDate}
             ref={minuteRef}
+            disabled={disabled}
             onLeftFocus={() => hourRef.current?.focus()}
             className={cn("w-full bg-secondary/40 rounded-md h-10")}
           />

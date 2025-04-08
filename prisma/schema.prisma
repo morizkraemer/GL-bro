@@ -21,6 +21,8 @@ model Event {
     eventDate   DateTime
     createdAt   DateTime    @default(now())
     updatedAt   DateTime    @updatedAt
+    createdByUserId   String
+    createdByUser User      @relation(fields: [createdByUserId], references: [id])
     guestLists  GuestList[]
 
     @@index([venueId])
@@ -60,4 +62,17 @@ model Guest {
     updatedAt   DateTime    @updatedAt
 
     @@index([guestListId])
+}
+
+model User {
+    id          String         @id @default(uuid())
+    name        String
+    email       String      @unique
+    password    String
+    role        String      @default("admin") // user, admin
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+    events      Event[]
+
+    @@index([email])
 }
