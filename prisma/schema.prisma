@@ -46,6 +46,8 @@ model GuestList {
     guests      Guest[]
     maxCapacity Int?
     closed     Boolean     @default(false)
+    createdByUserId String
+    createdByUser User      @relation(fields: [createdByUserId], references: [id])
     createdAt   DateTime    @default(now())
     updatedAt   DateTime    @updatedAt
 
@@ -73,6 +75,7 @@ model User {
     createdAt   DateTime    @default(now())
     updatedAt   DateTime    @updatedAt
     events      Event[]
+    guestLists  GuestList[]
 
     @@index([email])
 }

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import EventForm from "@/components/forms/EventForm";
 import { EventFormValues } from "@/form-schemas/event-forms";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 interface Props {
     event: EventWithDetails;
@@ -14,11 +15,12 @@ interface Props {
 export default function EditEvent({ event }: Props) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const {data: session} = useSession();
     
     async function onSubmit(values: EventFormValues) {
         try {
             setIsSubmitting(true);
-            await updateEvent(event.id, values);
+            await updateEvent(session!.user, event.id, values);
             router.push(`/admin/desktop/events/${event.id}`);
             router.refresh();
         } catch (error) {

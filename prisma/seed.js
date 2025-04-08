@@ -56,6 +56,7 @@ async function main() {
           create: {
             name: 'Default Guest List',
             maxCapacity: 50,
+            createdByUserId: user.id,
           },
         },
       },
@@ -71,6 +72,7 @@ async function main() {
           create: {
             name: 'Default Guest List',
             maxCapacity: 50,
+            createdByUserId: user.id,
           },
         },
       },

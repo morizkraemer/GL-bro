@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { GuestListFormValues } from "@/form-schemas/event-forms";
 
-export async function createGuestLists(eventId: number, guestLists: GuestListFormValues[]) {
+export async function createGuestLists(userId: string, eventId: number, guestLists: GuestListFormValues[]) {
     if (!eventId || !guestLists.length) {
         return [];
     }
@@ -13,6 +13,7 @@ export async function createGuestLists(eventId: number, guestLists: GuestListFor
             eventId,
             name: guestList.name,
             maxCapacity: guestList.maxCapacity,
+            createdByUserId: userId,
         })),
     });
 
@@ -35,7 +36,7 @@ export async function updateGuestList(id: number, data: GuestListFormValues) {
     return updatedGuestList;
 }
 
-export async function updateEventGuestLists(eventId: number, guestLists: GuestListFormValues[]) {
+export async function updateEventGuestLists(userId: string, eventId: number, guestLists: GuestListFormValues[]) {
     // Get existing guest lists for this event
     const existingGuestLists = await prisma.guestList.findMany({
         where: { eventId },
@@ -80,6 +81,7 @@ export async function updateEventGuestLists(eventId: number, guestLists: GuestLi
                     eventId,
                     name: guestList.name,
                     maxCapacity: guestList.maxCapacity,
+                    createdByUserId: userId,
                 }
             })
         );
@@ -116,6 +118,28 @@ export async function getEventGuestLists(eventId: number) {
         where: { eventId },
         include: {
             guests: true,
+        },
+    });
+
+    return guestLists;
+}
+
+export async function getVenueGuestLists(venueId: number) {
+    if (!venueId) {
+        throw new Error("Venue ID is required");
+    }
+
+    const guestLists = await prisma.guestList.findMany({
+        where: { event: { venueId } },
+        include: {
+            event: {
+                include: {
+                    venue: true,
+                },
+            },
+            guests: true,
+            createdByUser: true
+            
         },
     });
 

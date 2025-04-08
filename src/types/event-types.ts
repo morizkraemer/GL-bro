@@ -55,6 +55,12 @@ export interface EventWithDetails extends Event {
     createdByUser: User; 
 }
 
+export interface GuestListWithDetails extends GuestList {
+    guests: Guest[];
+    event: EventWithVenue;
+    createdByUser: User;
+}
+
 // Form types
 export interface GuestListFormValues {
     id?: number;

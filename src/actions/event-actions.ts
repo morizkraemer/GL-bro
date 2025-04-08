@@ -61,6 +61,7 @@ export async function getEventById(id: number) {
                     guests: true
                 }
             },
+            createdByUser: true,
         },
     });
 
@@ -93,14 +94,14 @@ export async function createEvent(user: Session["user"], formData: EventFormValu
 
     // Then create guest lists
     if (guestLists?.length) {
-        await createGuestLists(event.id, guestLists);
+        await createGuestLists(user.id, event.id, guestLists);
     }
 
     revalidatePath('/admin/desktop/events');
     return event;
 }
 
-export async function updateEvent(id: number, formData: EventFormValues) {
+export async function updateEvent(user: Session["user"], id: number, formData: EventFormValues) {
     const { eventName, eventDateTime, venueId: venue, guestLists } = formData;
     if (!eventName || !venue || !eventDateTime)
 {
@@ -126,7 +127,7 @@ export async function updateEvent(id: number, formData: EventFormValues) {
 
         // Update guest lists separately
         if (guestLists?.length) {
-            await updateEventGuestLists(id, guestLists);
+            await updateEventGuestLists(user.id,id, guestLists);
         }
 
         revalidatePath(`/admin/desktop/events/${id}`);
