@@ -63,7 +63,7 @@ export default function AllEventsPage() {
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow>
+                        <TableRow className="hover:bg-transparent">
                             <TableHead>Event Name</TableHead>
                             <TableHead>Venue</TableHead>
                             <TableHead>Date</TableHead>

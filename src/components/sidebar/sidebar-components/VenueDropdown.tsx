@@ -31,7 +31,7 @@ const VenueDropdown = ({venues}: {venues: Venue[]}) => {
                             aria-expanded={venueDropdownOpen}
                             className={cn(
                                 "flex justify-between w-full text-center font-medium transition-all",
-                                isViewingSpecificEvent ? "opacity-50 cursor-not-allowed" : "hover:bg-slate-100"
+                                isViewingSpecificEvent ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-900"
                             )}
                             disabled={isViewingSpecificEvent}
                         >

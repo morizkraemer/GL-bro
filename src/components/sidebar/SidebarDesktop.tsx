@@ -26,7 +26,7 @@ export default function SidebarDesktop({ venues }: { venues: Venue[] }) {
                             <SidebarMenuItem>
                                 <SidebarMenuButton
                                     onClick={() => router.push("/admin/desktop/events")}
-                                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium transition-all hover:bg-slate-100 rounded-md"
+                                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium transition-all hover:bg-gray-900 rounded-md"
                                 >
                                     <Calendar className="h-4 w-4" />
                                     All Events
@@ -35,7 +35,7 @@ export default function SidebarDesktop({ venues }: { venues: Venue[] }) {
                             <SidebarMenuItem>
                                 <SidebarMenuButton
                                     onClick={() => router.push("/admin/desktop/events/create")}
-                                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium transition-all hover:bg-slate-100 rounded-md"
+                                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium transition-all hover:bg-gray-900 rounded-md"
                                 >
                                     <CalendarPlus className="h-4 w-4" />
                                     Create Event
@@ -44,7 +44,7 @@ export default function SidebarDesktop({ venues }: { venues: Venue[] }) {
                             <SidebarMenuItem>
                                 <SidebarMenuButton
                                     onClick={() => router.push("/admin/desktop/guestlists")}
-                                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium transition-all hover:bg-slate-100 rounded-md"
+                                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-medium transition-all hover:bg-gray-900 rounded-md"
                                 >
                                     <CalendarPlus className="h-4 w-4" />
                                     All Guestlists
