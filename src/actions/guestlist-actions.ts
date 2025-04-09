@@ -145,3 +145,40 @@ export async function getVenueGuestLists(venueId: number) {
 
     return guestLists;
 }
+
+export async function toggleGuestListClosed(id: number, closed: boolean) {
+    if (!id) {
+        throw new Error("Guest list ID is required");
+    }
+
+    return prisma.guestList.update({
+        where: { id },
+        data: { closed },
+    });
+}
+
+export async function getGuestListById(id: number) {
+    if (!id) {
+        throw new Error("Guest list ID is required");
+    }
+
+    const guestList = await prisma.guestList.findUnique({
+        where: { id },
+        include: {
+            event: {
+                include: {
+                    venue: true,
+                    createdByUser: true
+                },
+            },
+            guests: true,
+            createdByUser: true
+        },
+    });
+
+    if (!guestList) {
+        throw new Error("Guest list not found");
+    }
+
+    return guestList;
+}
