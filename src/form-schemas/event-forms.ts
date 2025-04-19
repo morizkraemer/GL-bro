@@ -11,6 +11,7 @@ export const eventSchema = z.object({
     eventDateTime: z.date({ required_error: "Event date and time are required" }),
     venueId: z.number(),
     guestLists: z.array(guestListSchema).min(1, { message: "At least one guest list is required" }),
+    createdByUser: z.string()
 })
 
 

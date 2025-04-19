@@ -31,6 +31,8 @@ export interface Guest {
     id: number;
     name: string;
     email: string;
+    confirmed: boolean;
+    plusOne: boolean;
     guestListId: number;
     createdAt: Date;
     updatedAt: Date;
@@ -55,6 +57,10 @@ export interface EventWithDetails extends Event {
     createdByUser: User; 
 }
 
+export interface GuestListWithGuests extends GuestList {
+    guests: Guest[];
+    event: EventWithVenue
+}
 export interface GuestListWithDetails extends GuestList {
     guests: Guest[];
     event: EventWithVenue;

@@ -6,10 +6,12 @@ import { de } from 'date-fns/locale'
 import { ArrowLeft, Calendar, Clock, Lock, LockOpen, MapPin, Users, Info } from 'lucide-react'
 import Link from 'next/link'
 import { getEventById } from '@/actions/event-actions'
+import { toggleGuestListClosed } from '@/actions/guestlist-actions'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import React from 'react'
 
 type Props = {
@@ -23,6 +25,31 @@ export default function EventDetailsPage({ params }: Props) {
     const [event, setEvent] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [isClosingAll, setIsClosingAll] = useState(false)
+
+    const handleToggleClose = async (id: number, closed: boolean) => {
+        try {
+            await toggleGuestListClosed(id, closed);
+            // Refresh the event data after toggling
+            const eventData = await getEventById(parseInt(eventId));
+            setEvent(eventData);
+        } catch (error) {
+            console.error("Error toggling guestlist status:", error);
+        }
+    };
+
+    const handleCloseAll = async () => {
+        setIsClosingAll(true);
+        try {
+            for (const guestList of event.guestLists) {
+                if (!guestList.closed) {
+                    await handleToggleClose(guestList.id, true);
+                }
+            }
+        } finally {
+            setIsClosingAll(false);
+        }
+    };
 
     useEffect(() => {
         async function fetchEvent() {
@@ -143,7 +170,7 @@ export default function EventDetailsPage({ params }: Props) {
                                 <p className="font-medium">{formattedDate}</p>
                             </CardContent>
                         </Card>
-                        
+
                         <Card className="bg-background shadow-sm">
                             <CardContent className="p-4 flex flex-col items-center justify-center">
                                 <div className="rounded-full bg-primary/10 p-2 mb-2">
@@ -153,7 +180,7 @@ export default function EventDetailsPage({ params }: Props) {
                                 <p className="font-medium">{formattedTime}</p>
                             </CardContent>
                         </Card>
-                        
+
                         <Card className="bg-background shadow-sm">
                             <CardContent className="p-4 flex flex-col items-center justify-center">
                                 <div className="rounded-full bg-primary/10 p-2 mb-2">
@@ -169,21 +196,59 @@ export default function EventDetailsPage({ params }: Props) {
                         {
                             event.guestLists.length > 0 ? (
                                 <div>
-                                    <h3 className="text-lg font-semibold mb-3">Guest Lists</h3>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-lg font-semibold">Guest Lists</h3>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button 
+                                                    variant={event.guestLists.some((list: any) => !list.closed) ? "destructive" : "outline"}
+                                                    size="sm"
+                                                    className="flex items-center gap-2"
+                                                    disabled={!event.guestLists.some((list: any) => !list.closed)}
+                                                >
+                                                    <Lock className="h-4 w-4" />
+                                                    {event.guestLists.some((list: any) => !list.closed) ? "Close All" : "All Closed"}
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Close All Guest Lists</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This will close all open guest lists for this event. This action cannot be undone.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction 
+                                                        onClick={handleCloseAll}
+                                                        disabled={isClosingAll}
+                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                    >
+                                                        {isClosingAll ? 'Closing...' : 'Close All'}
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
                                     <div className="grid gap-3">
                                         {event.guestLists.map((guestList: any) => (
                                             <Card key={guestList.id} className="bg-card shadow-sm">
                                                 <CardContent className="p-4">
                                                     <div className="flex justify-between items-center">
                                                         <div className="flex items-center gap-2">
-                                                            {!guestList.closed 
-                                                                ? <LockOpen className="h-4 w-4 text-green-500" /> 
-                                                                : <Lock className="h-4 w-4 text-amber-500" />
-                                                            }
-                                                            <span className="font-medium">{guestList.name}</span>
-                                                            <Badge variant="outline" className={`ml-2 ${!guestList.closed ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-                                                                {!guestList.closed ? 'Open' : 'Closed'}
-                                                            </Badge>
+                                                            <Button 
+                                                                onClick={() => handleToggleClose(guestList.id, !guestList.closed)}
+                                                                variant="ghost"
+                                                                className="p-0 h-auto hover:bg-transparent"
+                                                            >
+                                                                <Badge 
+                                                                    variant="outline" 
+                                                                    className={`ml-2 transition-colors ${!guestList.closed ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`}
+                                                                >
+                                                                    {!guestList.closed ? 'Open' : 'Closed'}
+                                                                </Badge>
+                                                            </Button>
+                                                            <Link href={`/admin/desktop/guestlists/${guestList.id}`}><span className="font-medium hover:underline">{guestList.name}</span></Link>
                                                         </div>
                                                         <div className="flex items-center gap-4">
                                                             <div className="text-sm">
@@ -191,7 +256,7 @@ export default function EventDetailsPage({ params }: Props) {
                                                                 <span className="text-muted-foreground"> / {guestList.maxCapacity} guests</span>
                                                             </div>
                                                             <div className="w-24 bg-muted h-2 rounded-full overflow-hidden">
-                                                                <div 
+                                                                <div
                                                                     className={`h-full rounded-full ${guestList.guests.length >= guestList.maxCapacity ? 'bg-destructive' : 'bg-primary'}`}
                                                                     style={{ width: `${Math.min(100, (guestList.guests.length / guestList.maxCapacity) * 100)}%` }}
                                                                 />
@@ -218,6 +283,7 @@ export default function EventDetailsPage({ params }: Props) {
 
                 </CardContent>
             </Card>
+
         </div>
     )
 }

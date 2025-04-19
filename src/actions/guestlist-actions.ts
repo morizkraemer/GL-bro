@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { GuestListFormValues } from "@/form-schemas/event-forms";
+import { on } from "events";
 
 export async function createGuestLists(userId: string, eventId: number, guestLists: GuestListFormValues[]) {
     if (!eventId || !guestLists.length) {
@@ -181,4 +182,27 @@ export async function getGuestListById(id: number) {
     }
 
     return guestList;
+}
+
+export async function getGuestListsByUserId(userId: string) {
+    if (!userId) throw new Error("UserId is required")
+    
+    const guestLists = await prisma.guestList.findMany({
+        where: {
+            createdByUserId: userId
+        },
+        include: {
+            guests: true,
+            event: {
+                include: {
+                    venue: true
+                }
+            },
+            createdByUser: true
+        }
+    })
+
+    if (!guestLists) throw new Error("No lists found");
+
+    return guestLists
 }

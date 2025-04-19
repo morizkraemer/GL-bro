@@ -15,20 +15,19 @@ GL Bro is a guest list management system built with Next.js, featuring:
 - State Management: Zustand
 - Authentication: (To be implemented)
 
-## Database Schema
-See [ERD.md](ERD.md) for the complete Entity-Relationship Diagram of the system.
+
 
 ## Todo Items
 
 ### Core Features
 - [ ] User Authentication
-  - [ ] Login/Register system
-  - [ ] Role-based access control
+  - [x] Login/Register system
+  - [x] Role-based access control
   - [ ] Session management
 
 - [ ] Event Management
-  - [ ] Create/Edit/Delete events
-  - [ ] Event details page
+  - [x] Create/Edit/Delete events
+  - [x] Event details page
   - [ ] Event calendar view
   - [ ] Event search and filtering
 
@@ -36,19 +35,17 @@ See [ERD.md](ERD.md) for the complete Entity-Relationship Diagram of the system.
   - [ ] Create/Edit/Delete venues
   - [ ] Venue details page
   - [ ] Venue capacity tracking
+  - [ ] Default Guest lists on Venue Level
 
 - [ ] Guest List Management
-  - [ ] Create/Edit/Delete guest lists
+  - [x] Create/Edit/Delete guest lists
   - [ ] Guest registration
   - [ ] Guest check-in system
-  - [ ] Guest list capacity tracking
+  - [x] Guest list capacity tracking
   - [ ] Guest list export functionality
 
-- [ ] Access Code System
-  - [ ] Generate and manage access codes
-  - [ ] Code validation and usage tracking
-  - [ ] Plus-one management
-  - [ ] Code expiration handling
+- [ ] Link System
+    -
 
 ### Database Implementation
 - [x] Update Prisma schema to match ERD
@@ -77,18 +74,3 @@ See [ERD.md](ERD.md) for the complete Entity-Relationship Diagram of the system.
 - [ ] Configure production environment
 - [ ] Set up monitoring and analytics
 - [ ] Database backup strategy
-
-## Next Steps
-1. Update Prisma schema to match the new ERD
-2. Implement user authentication system
-3. Complete event management features
-4. Develop guest list management functionality
-5. Add responsive design improvements
-6. Set up testing infrastructure
-
-## Notes
-- Current venues: Bahnhof Pauli and Tranzit
-- Using PostgreSQL for data persistence
-- Dark mode support already implemented
-- Basic event and venue models are in place
-- New ERD created for comprehensive data model 

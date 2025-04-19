@@ -13,69 +13,105 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Event {
-    id          Int         @id @default(autoincrement())
-    name        String
-    venueId     Int
-    venue       Venue       @relation(fields: [venueId], references: [id])
-    eventDate   DateTime
-    createdAt   DateTime    @default(now())
-    updatedAt   DateTime    @updatedAt
-    createdByUserId   String
-    createdByUser User      @relation(fields: [createdByUserId], references: [id])
-    guestLists  GuestList[]
+model Organization {
+  id        Int      @id @default(autoincrement())
+  venues    Venue[]
+  name      String
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
-    @@index([venueId])
+model Event {
+  id              Int         @id @default(autoincrement())
+  name            String
+  venueId         Int
+  venue           Venue       @relation(fields: [venueId], references: [id])
+  active          Boolean     @default(true)
+  eventDate       DateTime
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  createdByUserId String
+  createdByUser   User        @relation(fields: [createdByUserId], references: [id])
+  guestLists      GuestList[]
+
+  @@index([venueId])
 }
 
 model Venue {
-    id          Int         @id @default(autoincrement())
-    name        String
-    address     String?
-    capacity    Int
-    events      Event[]
-    createdAt   DateTime    @default(now())
-    updatedAt   DateTime    @updatedAt
+  id             Int          @id @default(autoincrement())
+  name           String
+  address        String?
+  capacity       Int
+  events         Event[]
+  organizationId Int
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model GuestList {
-    id          Int         @id @default(autoincrement())
-    name        String
-    eventId     Int
-    event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
-    guests      Guest[]
-    maxCapacity Int?
-    closed     Boolean     @default(false)
-    createdByUserId String
-    createdByUser User      @relation(fields: [createdByUserId], references: [id])
-    createdAt   DateTime    @default(now())
-    updatedAt   DateTime    @updatedAt
+  id              Int      @id @default(autoincrement())
+  name            String
+  eventId         Int
+  event           Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guests          Guest[]
+  links           Link[]
+  maxCapacity     Int?
+  closed          Boolean  @default(false)
+  createdByUserId String
+  createdByUser   User     @relation(fields: [createdByUserId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-    @@index([eventId])
+  @@index([eventId])
+}
+
+model Link {
+  id                String    @id @default(uuid())
+  name              String
+  guestlistId       Int
+  GuestList         GuestList @relation(fields: [guestlistId], references: [id])
+  active            Boolean   @default(false)
+  capacity          Int
+  plusOne           Boolean
+  isOneTime         Boolean
+  canView           Boolean   @default(false)
+  canEdit           Boolean   @default(false)
+  needsConfirmation Boolean   @default(false)
+  createdByUserId   String
+  createdByUser     User      @relation(fields: [createdByUserId], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Guest {
-    id          Int         @id @default(autoincrement())
-    name        String
-    email       String      @unique
-    guestListId Int
-    guestList   GuestList   @relation(fields: [guestListId], references: [id], onDelete: Cascade)
-    createdAt   DateTime    @default(now())
-    updatedAt   DateTime    @updatedAt
+  id          Int       @id @default(autoincrement())
+  name        String
+  email       String    @unique
+  plusOne     Boolean   @default(false)
+  guestListId Int
+  guestList   GuestList @relation(fields: [guestListId], references: [id], onDelete: Cascade)
+  confirmed   Boolean
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-    @@index([guestListId])
+  @@index([guestListId])
 }
 
 model User {
-    id          String         @id @default(uuid())
-    name        String
-    email       String      @unique
-    password    String
-    role        String      @default("admin") // user, admin
-    createdAt   DateTime    @default(now())
-    updatedAt   DateTime    @updatedAt
-    events      Event[]
-    guestLists  GuestList[]
+  id             String       @id @default(uuid())
+  name           String
+  email          String       @unique
+  password       String
+  role           String       @default("admin") // user, admin
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organizationId Int
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  events         Event[]
+  guestLists     GuestList[]
+  links          Link[]
 
-    @@index([email])
+  @@index([email])
 }

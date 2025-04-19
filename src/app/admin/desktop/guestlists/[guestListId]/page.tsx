@@ -1,4 +1,4 @@
- 'use client'
+'use client'
 
 import { getGuestListById } from "@/actions/guestlist-actions";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { EventWithDetails, GuestListWithDetails } from "@/types/event-types";
 import { format } from "date-fns";
 import { de } from "date-fns/locale/de";
-import { ArrowLeft, Calendar, MapPin, UserIcon, Users } from "lucide-react";
+import { ArrowLeft, Calendar, CheckCircle, CheckSquare, CircleX, MapPin, MinusSquare, UserIcon, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getEventById } from "@/actions/event-actions";
+import CopyInput from "@/components/ui/input-clipboard";
+import { Checkbox } from "@/components/ui/checkbox";
+import NumberDropdown from "@/components/ui/custom/number-dropdown";
 
 export default function GuestListDetailsPage() {
     const params = useParams();
@@ -217,8 +220,8 @@ export default function GuestListDetailsPage() {
                                     <span className="font-medium text-sm">Available Guest Lists:</span>
                                     <div className="rounded-md border-[1px] p-2 mt-1">
                                         {event.guestLists.map((list) => (
-                                            <Link 
-                                                key={list.id} 
+                                            <Link
+                                                key={list.id}
                                                 href={`/admin/desktop/guestlists/${list.id}`}
                                                 className="block hover:bg-gray-900 rounded-md"
                                             >
@@ -247,9 +250,53 @@ export default function GuestListDetailsPage() {
                 </Card>
             </div>
 
+            <div className="flex justify-between gap-x-4">
+                <Card className="flex-1">
+                    <CardHeader>
+                        <CardTitle>Editors</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    </CardContent>
+                    <CardFooter>
+                        <Button variant="default">Add new</Button>
+                    </CardFooter>
+                </Card>
+                <Card className="flex-1">
+                    <CardHeader>
+                        <CardTitle>One Time Links</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {true ? (
+                            <div>no links yet</div>
+                        )
+                            :
+                            (
+                                <Table>
+                                </Table>
+
+                            )
+                        }
+
+                    </CardContent>
+                    <CardFooter className="block">
+                        <div className="flex gap-x-4 justify-between items-center p-2 px-4 border rounded-lg ">
+                            <Button variant="default">Create New</Button>
+                            <NumberDropdown size={15} placeholder="Select Slots" prefix="Slots" />
+                            <div className="border border-input rounded-md p-2">
+                                <Checkbox id="plusone" />
+                                <label htmlFor="plusone" className="pl-1">+1</label>
+                            </div>
+
+
+                            <CopyInput className="flex-1" value="link" />
+                        </div>
+                    </CardFooter>
+                </Card>
+            </div>
+
             <Card>
                 <CardHeader>
-                    <CardTitle>Guest List ({guestCount})</CardTitle>
+                    <CardTitle>Guests ({guestCount})</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {guestList.guests.length === 0 ? (
@@ -261,15 +308,21 @@ export default function GuestListDetailsPage() {
                             <TableHeader>
                                 <TableRow className="hover:bg-transparent">
                                     <TableHead>Name</TableHead>
-                                    <TableHead>Email</TableHead>
+                                        <TableHead>Plus one</TableHead>
+                                    <TableHead>Confirmed</TableHead>
                                     <TableHead>Added On</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {guestList.guests.map((guest) => (
-                                    <TableRow key={guest.id} className="hover:bg-gray-50">
+                                    <TableRow key={guest.id} className="hover:bg-gray-900">
                                         <TableCell className="font-medium">{guest.name}</TableCell>
-                                        <TableCell>{guest.email}</TableCell>
+                                        <TableCell>{guest.plusOne ? <CheckCircle /> : <CircleX />}</TableCell>
+                                        <TableCell>{guest.confirmed ? <CheckSquare /> :
+                                            <div className="flex items-center gap-x-2">
+                                                <MinusSquare />
+                                                <Button variant="destructive">Confirm</Button>
+                                            </div>}</TableCell>
                                         <TableCell>{format(new Date(guest.createdAt), 'PPP', { locale: de })}</TableCell>
                                     </TableRow>
                                 ))}

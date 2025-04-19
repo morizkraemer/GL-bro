@@ -18,6 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { useVenueStore } from "@/stores/useVenuestore";
 import { EventWithDetails } from "@/types/event-types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 export default function AllEventsPage() {
     const { selectedVenue } = useVenueStore();
@@ -64,11 +66,11 @@ export default function AllEventsPage() {
                 <Table>
                     <TableHeader>
                         <TableRow className="hover:bg-transparent">
-                            <TableHead>Event Name</TableHead>
-                            <TableHead>Venue</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Created At</TableHead>
-                            <TableHead>Created By</TableHead>
+                            <TableHead className="w-[600px]">Event Name</TableHead>
+                            <TableHead className="w-[300px]">Venue</TableHead>
+                            <TableHead className="w-[300px]">Date</TableHead>
+                            <TableHead className="w-[100px] text-center">Created By</TableHead>
+                            <TableHead className="w-[100px] text-center">Created At</TableHead>
                             <TableHead className="w-[80px]"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -77,11 +79,12 @@ export default function AllEventsPage() {
                             // Skeleton loader rows
                             Array(5).fill(0).map((_, index) => (
                                 <TableRow key={`skeleton-${index}`}>
-                                    <TableCell><Skeleton className="h-6 w-[180px]" /></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-[120px]" /></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-[150px]" /></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-[150px]" /></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-6 rounded-full" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-[600px]" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-[300px]" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-[300px]" /></TableCell>
+                                    <TableCell className="text-center"><Skeleton className="h-6 w-[100px]" /></TableCell>
+                                    <TableCell className="text-center"><Skeleton className="h-6 w-[100px]" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-[80px]" /></TableCell>
                                 </TableRow>
                             ))
                         ) : (
@@ -97,12 +100,33 @@ export default function AllEventsPage() {
                                     </TableCell>
                                     <TableCell>{event.venue.name}</TableCell>
                                     <TableCell>{format(new Date(event.eventDate), 'PPP', { locale: de })}</TableCell>
-                                    <TableCell>{format(new Date(event.createdAt), 'PPP', { locale: de })}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            {event.createdByUser.name}
-                                        </div>
+                                    <TableCell className="text-center">
+                                        <HoverCard>
+                                            <HoverCardTrigger asChild>
+                                                <div className="flex items-center justify-center cursor-pointer">
+                                                    <Avatar className="h-8 w-8">
+                                                        <AvatarImage src={undefined} />
+                                                        <AvatarFallback>{event.createdByUser.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                    </Avatar>
+                                                </div>
+                                            </HoverCardTrigger>
+                                            <HoverCardContent className="w-80">
+                                                <div className="flex justify-between space-x-4">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={undefined} />
+                                                        <AvatarFallback>{event.createdByUser.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="space-y-1">
+                                                        <h4 className="text-sm font-semibold">{event.createdByUser.name}</h4>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Created this event
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </HoverCardContent>
+                                        </HoverCard>
                                     </TableCell>
+                                    <TableCell className="text-center">{format(new Date(event.createdAt), 'PPP', { locale: de })}</TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>

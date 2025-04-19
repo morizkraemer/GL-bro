@@ -27,13 +27,14 @@ interface Props {
 
 export default function EventForm({ event, onSubmit, onCancel, submitLabel = 'Save Changes', disabled = false }: Props) {
     const { selectedVenue } = useVenueStore()
-    
+
     const form = useForm<EventFormValues>({
         resolver: zodResolver(eventSchema),
         defaultValues: {
             eventName: event?.name || '',
             eventDateTime: event ? new Date(event.eventDate) : new Date(),
             venueId: event?.venueId || selectedVenue?.id,
+            createdByUser: event?.createdByUser.id,
             guestLists: event?.guestLists?.map((guestList) => ({
                 id: guestList.id,
                 name: guestList.name,

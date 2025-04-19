@@ -45,6 +45,22 @@ export async function getEventsByVenueId(venueId: number) {
     return events;
 }
 
+export async function getEventsByUserId(userId: string) {
+    if (!userId) throw new Error("UserId is required")
+    const events = await prisma.event.findMany({
+        where: {
+            createdByUserId: userId
+        },
+        include: {
+            venue: true
+        }
+    })
+
+    if (!events) throw new Error("No events found")
+
+    return events
+}
+ 
 export async function getEventById(id: number) {
     if (!id) {
         throw new Error("Event ID is required");

@@ -16,7 +16,7 @@ export default function EditEvent({ event }: Props) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const {data: session} = useSession();
-    
+
     async function onSubmit(values: EventFormValues) {
         try {
             setIsSubmitting(true);
