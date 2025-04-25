@@ -1,4 +1,3 @@
-import { useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -6,9 +5,18 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { ChevronDown } from "lucide-react"
 
-export default function NumberDropdown({size, placeholder, prefix}: {size: number, placeholder: string, prefix: string}) {
-  const [selected, setSelected] = useState<number | null>(null)
+type Props = {
+    selected: number
+    setSelected: React.Dispatch<React.SetStateAction<number>>
+    size: number
+    placeholder: string
+    width?: number
+    prefix: string
+}
+
+export default function NumberDropdown({selected, setSelected, size, placeholder, width, prefix}: Props) {
 
   const numbers: number[] = Array.from({ length: size }, (_, i) => i + 1) // 1 to 10
 
@@ -19,8 +27,12 @@ export default function NumberDropdown({size, placeholder, prefix}: {size: numbe
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">
-          {selected !== null ? `${prefix}:  ${selected}` : placeholder}
+        <Button variant="outline" className="flex items-center gap-2 w-fit justify-between relative">
+          {!width ? <span className="invisible">{placeholder}</span> : <span className={`w-[${width}px]`}></span>}
+          <span className="absolute truncate">
+            {selected !== null ? `${prefix}:  ${selected}` : placeholder}
+          </span>
+          <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

@@ -14,6 +14,15 @@ export const eventSchema = z.object({
     createdByUser: z.string()
 })
 
+export const oneTimeLinkSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    slots: z.number().min(1, "At least one slot is required"),
+    plusOne: z.boolean(),
+    needsConfirmation: z.boolean(),
+})
+
+
 
 export type GuestListFormValues = z.infer<typeof guestListSchema>
 export type EventFormValues = z.infer<typeof eventSchema>
+export type OneTimeLinkFormValues = z.infer<typeof oneTimeLinkSchema>

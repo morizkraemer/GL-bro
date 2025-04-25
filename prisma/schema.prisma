@@ -88,7 +88,7 @@ model Link {
 model Guest {
   id          Int       @id @default(autoincrement())
   name        String
-  email       String    @unique
+  email       String?    @unique
   plusOne     Boolean   @default(false)
   guestListId Int
   guestList   GuestList @relation(fields: [guestListId], references: [id], onDelete: Cascade)

@@ -13,6 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import React from 'react'
+import { EventWithDetails } from '@/types/event-types'
+import { PageError } from '@/types/generic-types'
+import router from 'next/router'
 
 type Props = {
     params: Promise<{
@@ -22,25 +25,31 @@ type Props = {
 
 export default function EventDetailsPage({ params }: Props) {
     const { eventId } = React.use(params)
-    const [event, setEvent] = useState<any>(null)
+    const [event, setEvent] = useState<EventWithDetails | null>(null)
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    const [error, setError] = useState<PageError | null>(null)
     const [isClosingAll, setIsClosingAll] = useState(false)
 
     const handleToggleClose = async (id: number, closed: boolean) => {
         try {
             await toggleGuestListClosed(id, closed);
-            // Refresh the event data after toggling
-            const eventData = await getEventById(parseInt(eventId));
-            setEvent(eventData);
+            const {error, data} = await getEventById(parseInt(eventId));
+            if (error) {
+                if (error.code === "auth") return router.push('/admin/auth/login')
+                setError(error);
+                return;
+            }
+            setEvent(data);
         } catch (error) {
             console.error("Error toggling guestlist status:", error);
+            setError({code: "generic", message: "Failed to update guest list status"});
         }
     };
 
     const handleCloseAll = async () => {
         setIsClosingAll(true);
         try {
+            if (!event) return;
             for (const guestList of event.guestLists) {
                 if (!guestList.closed) {
                     await handleToggleClose(guestList.id, true);
@@ -55,12 +64,16 @@ export default function EventDetailsPage({ params }: Props) {
         async function fetchEvent() {
             try {
                 setLoading(true)
-                const eventData = await getEventById(parseInt(eventId))
-                console.log('Event data:', eventData)
-                setEvent(eventData)
+                const {error, data} = await getEventById(parseInt(eventId))
+                if (error) {
+
+                    setError(error)
+                    return
+                }
+                setEvent(data)
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to load event')
                 console.error('Error fetching event:', err)
+                setError({code: "generic", "message" : 'Failed to load event'})
             } finally {
                 setLoading(false)
             }
@@ -71,30 +84,79 @@ export default function EventDetailsPage({ params }: Props) {
 
     if (loading) {
         return (
-            <div className="container mx-auto py-8 max-w-3xl">
-                <div className="mb-6 flex items-center">
-                    <Skeleton className="h-10 w-32 mr-2" />
-                    <Skeleton className="h-6 w-64 ml-auto" />
+            <div className="container mx-auto py-8 max-w-4xl">
+                <div className='flex justify-between items-center mb-6'>
+                    <Skeleton className="h-10 w-32" />
+                    <Skeleton className="h-10 w-24" />
                 </div>
-                <Card className="shadow-md">
-                    <CardHeader>
-                        <Skeleton className="h-10 w-3/4 mb-2" />
-                        <Skeleton className="h-4 w-1/2" />
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="flex justify-between">
-                            <Skeleton className="h-6 w-1/4" />
-                            <Skeleton className="h-6 w-1/4" />
-                            <Skeleton className="h-6 w-1/4" />
+                <Card className="overflow-hidden shadow-md border-t-4 border-t-primary">
+                    <CardHeader className="pb-2 bg-muted/30">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <Skeleton className="h-10 w-3/4 mb-2" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </div>
+                            <Skeleton className="h-6 w-20" />
                         </div>
-                        <Skeleton className="h-4 w-full mt-4" />
-                        <Skeleton className="h-20 w-full" />
-                        <Skeleton className="h-6 w-1/3" />
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-6">
+                        <div className="grid grid-cols-3 gap-4">
+                            <Card className="bg-background shadow-sm">
+                                <CardContent className="p-4 flex flex-col items-center justify-center">
+                                    <Skeleton className="h-10 w-10 rounded-full mb-2" />
+                                    <Skeleton className="h-4 w-16 mb-1" />
+                                    <Skeleton className="h-5 w-32" />
+                                </CardContent>
+                            </Card>
+                            <Card className="bg-background shadow-sm">
+                                <CardContent className="p-4 flex flex-col items-center justify-center">
+                                    <Skeleton className="h-10 w-10 rounded-full mb-2" />
+                                    <Skeleton className="h-4 w-16 mb-1" />
+                                    <Skeleton className="h-5 w-32" />
+                                </CardContent>
+                            </Card>
+                            <Card className="bg-background shadow-sm">
+                                <CardContent className="p-4 flex flex-col items-center justify-center">
+                                    <Skeleton className="h-10 w-10 rounded-full mb-2" />
+                                    <Skeleton className="h-4 w-16 mb-1" />
+                                    <Skeleton className="h-5 w-32" />
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        <div className="flex items-center justify-between mb-3">
+                            <Skeleton className="h-6 w-32" />
+                            <Skeleton className="h-8 w-24" />
+                        </div>
+                        <div className="grid gap-3">
+                            {Array(3).fill(0).map((_, index) => (
+                                <Card key={index} className="bg-card shadow-sm">
+                                    <CardContent className="p-4">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center gap-2">
+                                                <Skeleton className="h-6 w-16" />
+                                                <Skeleton className="h-5 w-32" />
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <Skeleton className="h-4 w-24" />
+                                                <Skeleton className="h-2 w-24 rounded-full" />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+
+                        <div className="mt-8 pt-4 border-t border-border">
+                            <Skeleton className="h-4 w-20 mb-1" />
+                            <Skeleton className="h-5 w-32" />
+                        </div>
                     </CardContent>
                 </Card>
             </div>
         )
     }
+
 
     if (error) {
         return (
@@ -113,7 +175,33 @@ export default function EventDetailsPage({ params }: Props) {
                     <CardContent className="pt-6">
                         <div className="flex items-center justify-center gap-2 text-destructive">
                             <Info className="h-5 w-5" />
-                            <p className="font-medium">{error}</p>
+                            <p className="font-medium">{error.message}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
+
+    //does not finding an event always throw an error? otherwise dont need event this
+    if (!event) {
+        return (
+            <div className="container mx-auto py-8 max-w-3xl">
+                <div className='flex justify-between items-center'>
+                    <div>
+                        <Link href="/admin/desktop/events">
+                            <Button variant="outline" className="flex items-center gap-2">
+                                <ArrowLeft className="h-4 w-4" />
+                                Back to Events
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+                <Card className="bg-destructive/10 shadow-md mt-6">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-center gap-2 text-destructive">
+                            <Info className="h-5 w-5" />
+                            <p className="font-medium">Event not found</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -155,7 +243,7 @@ export default function EventDetailsPage({ params }: Props) {
                             </CardDescription>
                         </div>
                         <Badge variant="outline" className="text-xs font-normal px-3 py-1 rounded-full">
-                            {event.status || 'Active'}
+                            Active
                         </Badge>
                     </div>
                 </CardHeader>
@@ -193,97 +281,76 @@ export default function EventDetailsPage({ params }: Props) {
                     </div>
 
                     <div>
-                        {
-                            event.guestLists.length > 0 ? (
-                                <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h3 className="text-lg font-semibold">Guest Lists</h3>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button 
-                                                    variant={event.guestLists.some((list: any) => !list.closed) ? "destructive" : "outline"}
-                                                    size="sm"
-                                                    className="flex items-center gap-2"
-                                                    disabled={!event.guestLists.some((list: any) => !list.closed)}
-                                                >
-                                                    <Lock className="h-4 w-4" />
-                                                    {event.guestLists.some((list: any) => !list.closed) ? "Close All" : "All Closed"}
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Close All Guest Lists</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        This will close all open guest lists for this event. This action cannot be undone.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction 
-                                                        onClick={handleCloseAll}
-                                                        disabled={isClosingAll}
-                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                    >
-                                                        {isClosingAll ? 'Closing...' : 'Close All'}
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </div>
-                                    <div className="grid gap-3">
-                                        {event.guestLists.map((guestList: any) => (
-                                            <Card key={guestList.id} className="bg-card shadow-sm">
-                                                <CardContent className="p-4">
-                                                    <div className="flex justify-between items-center">
-                                                        <div className="flex items-center gap-2">
-                                                            <Button 
-                                                                onClick={() => handleToggleClose(guestList.id, !guestList.closed)}
-                                                                variant="ghost"
-                                                                className="p-0 h-auto hover:bg-transparent"
-                                                            >
-                                                                <Badge 
-                                                                    variant="outline" 
-                                                                    className={`ml-2 transition-colors ${!guestList.closed ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`}
-                                                                >
-                                                                    {!guestList.closed ? 'Open' : 'Closed'}
-                                                                </Badge>
-                                                            </Button>
-                                                            <Link href={`/admin/desktop/guestlists/${guestList.id}`}><span className="font-medium hover:underline">{guestList.name}</span></Link>
-                                                        </div>
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="text-sm">
-                                                                <span className="font-medium">{guestList.guests.length}</span>
-                                                                <span className="text-muted-foreground"> / {guestList.maxCapacity} guests</span>
-                                                            </div>
-                                                            <div className="w-24 bg-muted h-2 rounded-full overflow-hidden">
-                                                                <div
-                                                                    className={`h-full rounded-full ${guestList.guests.length >= guestList.maxCapacity ? 'bg-destructive' : 'bg-primary'}`}
-                                                                    style={{ width: `${Math.min(100, (guestList.guests.length / guestList.maxCapacity) * 100)}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
+                        {event.guestLists.length > 0 ? (
+                            <div>
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-lg font-semibold">Guest Lists</h3>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="outline" size="sm" disabled={isClosingAll}>
+                                                {isClosingAll ? 'Closing...' : 'Close All Lists'}
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Close All Guest Lists</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Are you sure you want to close all guest lists for this event? This action cannot be undone.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleCloseAll}>Close All</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                                <div className="grid gap-3">
+                                    {event.guestLists.map((list) => (
+                                        <Card key={list.id} className="bg-card shadow-sm">
+                                            <CardContent className="p-4">
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex items-center gap-2">
+                                                        <Users className="h-5 w-5 text-muted-foreground" />
+                                                        <Link href={`/admin/desktop/guestlists/${list.id}`}><span className="font-medium hover:underline">{list.name}</span></Link>
                                                     </div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="text-sm text-muted-foreground">
+                                                            {list.guests.length} guests
+                                                        </span>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => handleToggleClose(list.id, !list.closed)}
+                                                            className="flex items-center gap-2"
+                                                        >
+                                                            {list.closed ? (
+                                                                <>
+                                                                    <Lock className="h-4 w-4" />
+                                                                    Closed
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <LockOpen className="h-4 w-4" />
+                                                                    Open
+                                                                </>
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
                                 </div>
-                            ) : (
-                                <div className="text-center py-6 bg-muted/30 rounded-lg">
-                                    <p className="text-muted-foreground">No guest lists available for this event.</p>
-                                </div>
-                            )
-                        }
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-muted-foreground">
+                                No guest lists created yet
+                            </div>
+                        )}
                     </div>
-
-                    <div className="mt-8 pt-4 border-t border-border">
-                        <h3 className="text-sm font-medium text-muted-foreground mb-1">Created</h3>
-                        <p>{format(new Date(event.createdAt), 'PPP', { locale: de })}</p>
-                    </div>
-
                 </CardContent>
             </Card>
-
         </div>
     )
 }

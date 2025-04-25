@@ -13,22 +13,38 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import CapacityComponent from "@/components/ui/pieces/capacity";
+import router from 'next/router'
+import { PageError } from "@/types/generic-types";
+import { logError } from "@/lib/logger";
+import { toast } from "sonner";
 
 export default function() {
     const { selectedVenue } = useVenueStore();
     const [guestLists, setGuestLists] = useState<GuestListWithDetails[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [pageError, setPageError] = useState<PageError | null>(null)
+
+    if (!selectedVenue) return setPageError({ code: "generic", message: "Select a venue" })
 
 
     useEffect(() => {
         const fetchGuestLists = async () => {
             try {
                 setLoading(true);
-                const response = await getVenueGuestLists(selectedVenue!.id);
-                setGuestLists(response);
+                const { error, data } = await getVenueGuestLists(selectedVenue!.id);
+                if (error) {
+                    if (error.code === "auth") {
+                        return router.push('/admin/auth/login')
+                    } else {
+                        return setPageError(error)
+                    }
+                }
+                setGuestLists(data);
             } catch (error) {
-                console.error("", error);
+                logError(error, "clientError all guestlists")
+                setPageError({ code: "generic", message: "Something went wrong" })
             } finally {
                 setLoading(false);
             }
@@ -39,21 +55,39 @@ export default function() {
 
     const handleDelete = async (id: number) => {
         try {
-            await deleteGuestList(id);
+            const { error } = await deleteGuestList(id);
+            if (error) {
+                if (error.code === "auth") {
+                    return router.push('/admin/auth/login')
+                } else {
+                    toast.error(error.message)
+                }
+            }
             setRefreshKey(prev => prev + 1);
         } catch (error) {
-            console.error("Error deleting GuestList:", error);
+            logError(error, "Error deleting GuestList:");
+            setPageError({ code: "generic", message: "Something went wrong" })
         }
     };
 
     const handleToggleClose = async (id: number, closed: boolean) => {
         try {
-            await toggleGuestListClosed(id, closed);
+            const { error } = await toggleGuestListClosed(id, closed);
+            if (error) {
+                if (error.code === "auth") {
+                    return router.push('/admin/auth/login')
+                } else {
+                    toast.error(error.message)
+                }
+            }
             setRefreshKey(prev => prev + 1);
         } catch (error) {
-            console.error("Error closing GuestList:", error);
+            logError(error, "Error closing GuestList");
+            setPageError({ code: "generic", message: "Something went wrong" })
         }
     }
+
+    if (pageError) return <div>{pageError.message}</div>
 
     return (
         <div className="container mx-auto py-8">
@@ -62,14 +96,14 @@ export default function() {
                 <Table className="w-full text-sm">
                     <TableHeader>
                         <TableRow className="hover:bg-transparent">
-                            <TableHead className="w-[600px]">List Name</TableHead>
-                            <TableHead className="w-[300px]">Status</TableHead>
-                            <TableHead className="w-[550px]">Venue</TableHead>
-                            <TableHead className="w-[300px]">Date</TableHead>
-                            <TableHead className="w-[250px]">Capacity</TableHead>
-                            <TableHead className="w-[100px] text-center">Created By</TableHead>
-                            <TableHead className="w-[100px] text-center">Created At</TableHead>
-                            <TableHead className="w-[80px]"></TableHead>
+                            <TableHead className="w-[5%]">Status</TableHead>
+                            <TableHead className="w-[15%]">List Name</TableHead>
+                            <TableHead className="w-[20%]">Capacity</TableHead>
+                            <TableHead className="w-[10%]">Event</TableHead>
+                            <TableHead className="w-[10%]">Date</TableHead>
+                            <TableHead className="w-[5%] text-center">Created By</TableHead>
+                            <TableHead className="w-[5%] text-center">Created At</TableHead>
+                            <TableHead className="w-[5%]"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -89,14 +123,6 @@ export default function() {
                         ) : (
                             guestLists.map((guestlist) => (
                                 <TableRow key={guestlist.id} className="hover:bg-gray-900">
-                                    <TableCell className="font-medium">
-                                        <Link
-                                            href={`/admin/desktop/guestlists/${guestlist.id}`}
-                                            className="hover:underline text-primary"
-                                        >
-                                            {guestlist.name}
-                                        </Link>
-                                    </TableCell>
                                     <TableCell>
                                         <Button
                                             variant="ghost"
@@ -106,9 +132,24 @@ export default function() {
                                             {guestlist.closed ? 'Closed' : 'Open'}
                                         </Button>
                                     </TableCell>
-                                    <TableCell>{guestlist.event.venue.name}</TableCell>
+                                    <TableCell className="font-medium">
+                                        <Link
+                                            href={`/admin/desktop/guestlists/${guestlist.id}`}
+                                            className="hover:underline text-primary"
+                                        >
+                                            {guestlist.name}
+                                        </Link>
+                                    </TableCell>
+                                    <TableCell><CapacityComponent guestList={guestlist} long /></TableCell>
+                                    <TableCell>
+                                        <Link
+                                            href={`/admin/desktop/events/${guestlist.event.id}`}
+                                            className="hover:underline text-primary"
+                                        >
+                                            {guestlist.event.name}
+                                        </Link>
+                                    </TableCell>
                                     <TableCell>{format(new Date(guestlist.event.eventDate), 'P', { locale: de })}</TableCell>
-                                    <TableCell>{guestlist.maxCapacity}</TableCell>
                                     <TableCell className="text-center">
                                         <HoverCard>
                                             <HoverCardTrigger asChild>

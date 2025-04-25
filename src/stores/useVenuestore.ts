@@ -10,13 +10,12 @@ type VenueStore = {
 export const useVenueStore = create<VenueStore>()(
     persist(
         (set, get) => ({
-
             selectedVenue: null,
             setSelectedVenue: (venue) => set({ selectedVenue: venue })
         }),
         {
             name: "venue-storage",
-            storage: createJSONStorage(() => sessionStorage)
+            storage: createJSONStorage(() => localStorage)
         }
     )
 )

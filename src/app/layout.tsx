@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { runStartupTasks } from "@/lib/server-init";
 import { ClientInitializer } from "@/components/init-client";
-import { SessionProvider } from "next-auth/react";
 import ClientProviders from "@/components/utils/ClientProviders";
+import { Toaster } from "sonner";
 
 // Execute server initialization code - runs once on server startup
 // This is executed on the server side only
@@ -42,6 +41,7 @@ export default function RootLayout({
                 <ClientProviders> 
                     <ClientInitializer />
                     {children}
+                    <Toaster />
                 </ClientProviders>
             </body>
         </html>

@@ -1,8 +1,11 @@
 import { loginUser } from "@/actions/user-actions";
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import { JWT } from "next-auth/jwt"
+import { Session } from "next-auth"
 
-const handler = NextAuth({
+export const authOptions = {
+    secret: process.env.NEXTAUTH_SECRET,
     providers: [
         CredentialsProvider({
             // The name to display on the sign in form (e.g. 'Sign in with...')
@@ -37,19 +40,21 @@ const handler = NextAuth({
         })
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user }: { token: JWT, user: any }) {
             if (user) {
                 token.id = user.id;
             }
             return token;
         },
-        async session({ session, token }) {
+        async session({ session, token }: { session: Session, token: JWT }) {
             if (token?.id) {
                 session.user.id = token.id;
             }
             return session;
         },
     },
-})
+}
+
+const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }

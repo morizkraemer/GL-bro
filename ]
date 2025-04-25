@@ -27,21 +27,16 @@ export type GuestListWithGuests = Prisma.GuestListGetPayload<{
         guests: true
     }
 }>
+export interface GuestListWithGuests extends GuestList {
+    guests: Guest[]
+}
+export interface GuestListWithDetails extends GuestList {
+    guests: Guest[];
+    event: EventWithVenue;
+    createdByUser: User;
+}
 
-export type GuestListWithDetails = Prisma.GuestListGetPayload<{
-        include: {
-            event: {
-                include: {
-                    venue: true,
-                    createdByUser: true
-                },
-            },
-            guests: true,
-            createdByUser: true
-        },
-}>
-
-export type LinkWithDetails = Prisma.LinkGetPayload<{
+export type LinkNew = Prisma.LinkGetPayload<{
   include: {
     GuestList: {
       include: {
@@ -55,6 +50,19 @@ export type LinkWithDetails = Prisma.LinkGetPayload<{
     }
   }
 }>
+
+export interface LinkWithDetails extends Link {
+  GuestList: {
+    id: number
+    name: string
+    event: {
+      id: number
+      name: string
+      venue: Venue
+    }
+    guests: Guest[]
+  }
+}
 
 // Form types
 export interface GuestListFormValues {

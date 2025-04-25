@@ -5,17 +5,25 @@ import { useRouter } from "next/navigation";
 import EventForm from "@/components/forms/EventForm";
 import { EventFormValues } from "@/form-schemas/event-forms";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { logError } from "@/lib/logger";
 
 export default function CreateEventPage() {
     const router = useRouter();
-    const {data: session} = useSession();
-    
+    const { data: session } = useSession();
+
     async function onSubmit(values: EventFormValues) {
         try {
-            const event = await createEvent(session!.user, values);
+            const { error, data: event } = await createEvent(session!.user, values);
+            if (error) {
+                if (error.code === "auth") return router.push('admin/auth/signin')
+                toast.error(error.message)
+                return;
+            }
             router.push(`/admin/desktop/events/${event.id}`);
         } catch (error) {
-            console.error('Error creating event:', error)
+            toast.error("Error creating event")
+            logError(error, 'client Error creating event')
         }
     }
 
@@ -24,7 +32,7 @@ export default function CreateEventPage() {
             <div className="mb-6">
                 <h1 className="text-2xl font-bold">Create New Event</h1>
             </div>
-            <EventForm 
+            <EventForm
                 onSubmit={onSubmit}
                 onCancel={() => router.back()}
                 submitLabel="Create Event"

@@ -1,22 +1,21 @@
 'use client'
 
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Calendar, Users, Key, Lock, LockOpen } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getEventsByUserId } from "@/actions/event-actions";
-import { EventWithVenue, GuestListWithGuests } from "@/types/event-types";
+import { EventWithVenue, GuestListWithDetails } from "@/types/event-types";
 import { getGuestListsByUserId } from "@/actions/guestlist-actions";
 
 export default function ProfilePage() {
     const { data: session } = useSession();
     const [events, setEvents] = useState<EventWithVenue[]>([]);
-    const [guestlists, setGuestlists] = useState<GuestListWithGuests[]>([]);
+    const [guestlists, setGuestlists] = useState<GuestListWithDetails[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
